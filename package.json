@@ -1,0 +1,12 @@
+{
+  "name": "harbour-final-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Final project for Programming Interactivity",
+  "scripts": {
+    "start": "npx --yes live-server starter --port=8080 --no-browser"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
