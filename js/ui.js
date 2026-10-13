@@ -125,11 +125,314 @@
   });
 
   let isTracking = false;
+  let isEarthView = false;
+  let removeEarthViewListener = null;
+  let isHullView = false;
+  let removeHullViewListener = null;
+
   const btnTrackISS = document.getElementById('btnTrackISS');
   const trackLabel = document.getElementById('trackLabel');
+  const btnEarthView = document.getElementById('btnEarthView');
+  const earthViewLabel = document.getElementById('earthViewLabel');
+  const btnHullView = document.getElementById('btnHullView');
+  const hullViewLabel = document.getElementById('hullViewLabel');
+
+  function disableEarthView() {
+    if (removeEarthViewListener) {
+      removeEarthViewListener();
+      removeEarthViewListener = null;
+    }
+    if (window.appOrbit && window.appOrbit.iss3D && window.appOrbit.iss3D.model) {
+      window.appOrbit.iss3D.model.show = true;
+    }
+    isEarthView = false;
+    if (earthViewLabel) earthViewLabel.textContent = 'Cupola Earth View';
+    if (btnEarthView) btnEarthView.classList.remove('earth-active');
+  }
+
+  function disableHullView() {
+    if (removeHullViewListener) {
+      removeHullViewListener();
+      removeHullViewListener = null;
+    }
+    isHullView = false;
+    if (hullViewLabel) hullViewLabel.textContent = 'ISS Hull View (EVA)';
+    if (btnHullView) btnHullView.classList.remove('hull-active');
+  }
+
+  function activateEarthView() {
+    if (isTracking) {
+      isTracking = false;
+      viewer3D.trackedEntity = undefined;
+      if (trackLabel) trackLabel.textContent = 'Lock Camera to ISS';
+      if (btnTrackISS) btnTrackISS.classList.remove('tracking');
+    }
+    disableEarthView();
+    disableHullView();
+
+    isEarthView = true;
+    if (earthViewLabel) earthViewLabel.textContent = 'Exit Earth View';
+    if (btnEarthView) btnEarthView.classList.add('earth-active');
+    setActiveDockBtn('');
+
+    viewer3D.camera.cancelFlight();
+    viewer3D.trackedEntity = undefined;
+
+    // Hide exterior 3D mesh so opaque walls/windows do not block the view of Earth
+    if (window.appOrbit && window.appOrbit.iss3D && window.appOrbit.iss3D.model) {
+      window.appOrbit.iss3D.model.show = false;
+    }
+
+    const startCamPos = viewer3D.camera.positionWC.clone();
+    const startCamDir = viewer3D.camera.directionWC.clone();
+    const startCamUp = viewer3D.camera.upWC.clone();
+    const transitionMs = 1400;
+    const startTimeMs = performance.now();
+
+    removeEarthViewListener = viewer3D.scene.preRender.addEventListener(() => {
+      if (!window.appOrbit || !window.appOrbit.iss3D || !window.appOrbit.iss3D.position) return;
+      const currentTime = viewer3D.clock.currentTime;
+      const issPos = window.appOrbit.iss3D.position.getValue(currentTime);
+      if (!issPos) return;
+
+      // Geocentric nadir vector towards Earth center
+      const toEarth = Cesium.Cartesian3.normalize(
+        Cesium.Cartesian3.negate(issPos, new Cesium.Cartesian3()),
+        new Cesium.Cartesian3()
+      );
+
+      // Instantaneous flight velocity direction (heading vector along orbit)
+      const nextTime = Cesium.JulianDate.addSeconds(currentTime, 1.0, new Cesium.JulianDate());
+      const nextPos = window.appOrbit.iss3D.position.getValue(nextTime);
+      let velDir;
+      if (nextPos) {
+        velDir = Cesium.Cartesian3.normalize(
+          Cesium.Cartesian3.subtract(nextPos, issPos, new Cesium.Cartesian3()),
+          new Cesium.Cartesian3()
+        );
+      } else {
+        velDir = Cesium.Cartesian3.UNIT_Z;
+      }
+
+      // Cupola Earth Observation: look forward-down at Earth (reveals planet surface & curved atmospheric limb)
+      const targetLookDir = Cesium.Cartesian3.normalize(
+        Cesium.Cartesian3.add(
+          Cesium.Cartesian3.multiplyByScalar(toEarth, 1.35, new Cesium.Cartesian3()),
+          Cesium.Cartesian3.multiplyByScalar(velDir, 0.95, new Cesium.Cartesian3()),
+          new Cesium.Cartesian3()
+        ),
+        new Cesium.Cartesian3()
+      );
+
+      // Position camera at ISS location in orbit
+      const targetCamPos = issPos;
+
+      // Up vector orthogonal to lookDir, tilted towards velocity/sky
+      const targetRight = Cesium.Cartesian3.normalize(
+        Cesium.Cartesian3.cross(targetLookDir, toEarth, new Cesium.Cartesian3()),
+        new Cesium.Cartesian3()
+      );
+      const targetUp = Cesium.Cartesian3.normalize(
+        Cesium.Cartesian3.cross(targetRight, targetLookDir, new Cesium.Cartesian3()),
+        new Cesium.Cartesian3()
+      );
+
+      const elapsed = performance.now() - startTimeMs;
+      const linearP = Math.min(1.0, elapsed / transitionMs);
+      const easeP = linearP < 0.5 
+        ? 4 * linearP * linearP * linearP 
+        : 1 - Math.pow(-2 * linearP + 2, 3) / 2;
+
+      let curPos, curDir, curUp;
+      if (easeP < 1.0) {
+        curPos = Cesium.Cartesian3.lerp(startCamPos, targetCamPos, easeP, new Cesium.Cartesian3());
+        curDir = Cesium.Cartesian3.lerp(startCamDir, targetLookDir, easeP, new Cesium.Cartesian3());
+        Cesium.Cartesian3.normalize(curDir, curDir);
+        curUp = Cesium.Cartesian3.lerp(startCamUp, targetUp, easeP, new Cesium.Cartesian3());
+        Cesium.Cartesian3.normalize(curUp, curUp);
+      } else {
+        curPos = targetCamPos;
+        curDir = targetLookDir;
+        curUp = targetUp;
+      }
+
+      const curRight = Cesium.Cartesian3.normalize(
+        Cesium.Cartesian3.cross(curDir, curUp, new Cesium.Cartesian3()),
+        new Cesium.Cartesian3()
+      );
+      Cesium.Cartesian3.cross(curRight, curDir, curUp);
+      Cesium.Cartesian3.normalize(curUp, curUp);
+
+      viewer3D.camera.position = curPos;
+      viewer3D.camera.direction = curDir;
+      viewer3D.camera.up = curUp;
+      viewer3D.camera.right = curRight;
+    });
+  }
+
+  function activateHullView() {
+    if (isTracking) {
+      isTracking = false;
+      viewer3D.trackedEntity = undefined;
+      if (trackLabel) trackLabel.textContent = 'Lock Camera to ISS';
+      if (btnTrackISS) btnTrackISS.classList.remove('tracking');
+    }
+    disableEarthView();
+    disableHullView();
+
+    isHullView = true;
+    if (hullViewLabel) hullViewLabel.textContent = 'Exit Hull View';
+    if (btnHullView) btnHullView.classList.add('hull-active');
+    setActiveDockBtn('');
+
+    viewer3D.camera.cancelFlight();
+    viewer3D.trackedEntity = undefined;
+
+    // Ensure 3D model is visible so we see the station structure in front of and below us
+    if (window.appOrbit && window.appOrbit.iss3D && window.appOrbit.iss3D.model) {
+      window.appOrbit.iss3D.model.show = true;
+    }
+
+    const startCamPos = viewer3D.camera.positionWC.clone();
+    const startCamDir = viewer3D.camera.directionWC.clone();
+    const startCamUp = viewer3D.camera.upWC.clone();
+    const transitionMs = 1400;
+    const startTimeMs = performance.now();
+
+    removeHullViewListener = viewer3D.scene.preRender.addEventListener(() => {
+      if (!window.appOrbit || !window.appOrbit.iss3D || !window.appOrbit.iss3D.position) return;
+      const currentTime = viewer3D.clock.currentTime;
+      const issPos = window.appOrbit.iss3D.position.getValue(currentTime);
+      if (!issPos) return;
+
+      // Geocentric nadir (down to Earth) and Zenith (space)
+      const toEarth = Cesium.Cartesian3.normalize(
+        Cesium.Cartesian3.negate(issPos, new Cesium.Cartesian3()),
+        new Cesium.Cartesian3()
+      );
+      const zenith = Cesium.Cartesian3.negate(toEarth, new Cesium.Cartesian3());
+
+      // Heading velocity vector along orbit
+      const nextTime = Cesium.JulianDate.addSeconds(currentTime, 1.0, new Cesium.JulianDate());
+      const nextPos = window.appOrbit.iss3D.position.getValue(nextTime);
+      let velDir;
+      if (nextPos) {
+        velDir = Cesium.Cartesian3.normalize(
+          Cesium.Cartesian3.subtract(nextPos, issPos, new Cesium.Cartesian3()),
+          new Cesium.Cartesian3()
+        );
+      } else {
+        velDir = Cesium.Cartesian3.UNIT_Z;
+      }
+
+      // Lateral vector (starboard)
+      const sideDir = Cesium.Cartesian3.normalize(
+        Cesium.Cartesian3.cross(velDir, zenith, new Cesium.Cartesian3()),
+        new Cesium.Cartesian3()
+      );
+
+      // Camera sits perched atop the ISS truss on the zenith side, slightly aft (-velDir) and starboard:
+      // +520m zenith (above truss hull), -450m along velocity (aft of center), +160m starboard.
+      const targetCamPos = Cesium.Cartesian3.add(
+        issPos,
+        Cesium.Cartesian3.add(
+          Cesium.Cartesian3.multiplyByScalar(zenith, 520.0, new Cesium.Cartesian3()),
+          Cesium.Cartesian3.add(
+            Cesium.Cartesian3.multiplyByScalar(velDir, -450.0, new Cesium.Cartesian3()),
+            Cesium.Cartesian3.multiplyByScalar(sideDir, 160.0, new Cesium.Cartesian3()),
+            new Cesium.Cartesian3()
+          ),
+          new Cesium.Cartesian3()
+        ),
+        new Cesium.Cartesian3()
+      );
+
+      // Looking forward across the station modules and downward towards Earth surface & horizon:
+      const targetLookDir = Cesium.Cartesian3.normalize(
+        Cesium.Cartesian3.add(
+          Cesium.Cartesian3.multiplyByScalar(velDir, 1.45, new Cesium.Cartesian3()),
+          Cesium.Cartesian3.multiplyByScalar(toEarth, 0.75, new Cesium.Cartesian3()),
+          new Cesium.Cartesian3()
+        ),
+        new Cesium.Cartesian3()
+      );
+
+      // Up vector towards space/zenith
+      const targetRight = Cesium.Cartesian3.normalize(
+        Cesium.Cartesian3.cross(targetLookDir, zenith, new Cesium.Cartesian3()),
+        new Cesium.Cartesian3()
+      );
+      const targetUp = Cesium.Cartesian3.normalize(
+        Cesium.Cartesian3.cross(targetRight, targetLookDir, new Cesium.Cartesian3()),
+        new Cesium.Cartesian3()
+      );
+
+      const elapsed = performance.now() - startTimeMs;
+      const linearP = Math.min(1.0, elapsed / transitionMs);
+      const easeP = linearP < 0.5 
+        ? 4 * linearP * linearP * linearP 
+        : 1 - Math.pow(-2 * linearP + 2, 3) / 2;
+
+      let curPos, curDir, curUp;
+      if (easeP < 1.0) {
+        curPos = Cesium.Cartesian3.lerp(startCamPos, targetCamPos, easeP, new Cesium.Cartesian3());
+        curDir = Cesium.Cartesian3.lerp(startCamDir, targetLookDir, easeP, new Cesium.Cartesian3());
+        Cesium.Cartesian3.normalize(curDir, curDir);
+        curUp = Cesium.Cartesian3.lerp(startCamUp, targetUp, easeP, new Cesium.Cartesian3());
+        Cesium.Cartesian3.normalize(curUp, curUp);
+      } else {
+        curPos = targetCamPos;
+        curDir = targetLookDir;
+        curUp = targetUp;
+      }
+
+      const curRight = Cesium.Cartesian3.normalize(
+        Cesium.Cartesian3.cross(curDir, curUp, new Cesium.Cartesian3()),
+        new Cesium.Cartesian3()
+      );
+      Cesium.Cartesian3.cross(curRight, curDir, curUp);
+      Cesium.Cartesian3.normalize(curUp, curUp);
+
+      viewer3D.camera.position = curPos;
+      viewer3D.camera.direction = curDir;
+      viewer3D.camera.up = curUp;
+      viewer3D.camera.right = curRight;
+    });
+  }
+
+  function returnToGlobalOrbit() {
+    if (window.appViewers && window.appViewers.setSimulationCamera) {
+      window.appViewers.setSimulationCamera(1.8);
+      setActiveDockBtn('camGlobal');
+    }
+  }
+
+  if (btnEarthView) {
+    btnEarthView.addEventListener('click', () => {
+      if (isEarthView) {
+        disableEarthView();
+        returnToGlobalOrbit();
+      } else {
+        activateEarthView();
+      }
+    });
+  }
+
+  if (btnHullView) {
+    btnHullView.addEventListener('click', () => {
+      if (isHullView) {
+        disableHullView();
+        returnToGlobalOrbit();
+      } else {
+        activateHullView();
+      }
+    });
+  }
 
   if (btnTrackISS) {
     btnTrackISS.addEventListener('click', () => {
+      disableEarthView();
+      disableHullView();
       isTracking = !isTracking;
       if (isTracking) {
         viewer3D.trackedEntity = window.appOrbit.iss3D;
@@ -140,11 +443,14 @@
         viewer3D.trackedEntity = undefined;
         if (trackLabel) trackLabel.textContent = 'Lock Camera to ISS';
         btnTrackISS.classList.remove('tracking');
+        returnToGlobalOrbit();
       }
     });
   }
 
   function unbindCameraTracking() {
+    disableEarthView();
+    disableHullView();
     if (isTracking) {
       isTracking = false;
       viewer3D.trackedEntity = undefined;
@@ -154,6 +460,8 @@
   }
 
   function setTrackedState(state) {
+    disableEarthView();
+    disableHullView();
     isTracking = !!state;
     if (isTracking) {
       if (trackLabel) trackLabel.textContent = 'Unbind Camera';
@@ -162,6 +470,7 @@
     } else {
       if (trackLabel) trackLabel.textContent = 'Lock Camera to ISS';
       if (btnTrackISS) btnTrackISS.classList.remove('tracking');
+      returnToGlobalOrbit();
     }
   }
 

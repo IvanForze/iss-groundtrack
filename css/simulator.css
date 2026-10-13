@@ -577,8 +577,14 @@ body.landing-active .hud-badge-bottom {
   color: var(--cyan);
 }
 
-.track-btn {
+.track-actions-group {
   margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.track-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -591,7 +597,7 @@ body.landing-active .hud-badge-bottom {
   padding: 8px 14px;
   border-radius: 9999px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .track-btn:hover {
@@ -605,6 +611,18 @@ body.landing-active .hud-badge-bottom {
   color: var(--emerald);
 }
 
+.track-btn.earth-active {
+  background: rgba(56, 189, 248, 0.16);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: var(--cyan);
+}
+
+.track-btn.hull-active {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
 .track-dot {
   width: 6px;
   height: 6px;
@@ -614,6 +632,24 @@ body.landing-active .hud-badge-bottom {
 
 .track-btn.tracking .track-dot {
   background: var(--emerald);
+}
+
+.track-dot.earth-dot {
+  background: #38bdf8;
+}
+
+.track-btn.earth-active .track-dot.earth-dot {
+  background: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+}
+
+.track-dot.hull-dot {
+  background: #f59e0b;
+}
+
+.track-btn.hull-active .track-dot.hull-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
 }
 
 .hud-camera-dock {
