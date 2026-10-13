@@ -1046,3 +1046,265 @@ body.landing-active #timeControlDock {
 .explainer-footer svg {
   flex-shrink: 0;
 }
+
+.lunar-hud {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  z-index: 160;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.lunar-hud.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-12px);
+}
+
+.lunar-hud.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* Easter egg mode: hide simulator HUD */
+body.easter-egg-active #topNav,
+body.easter-egg-active .hud-camera-dock,
+body.easter-egg-active .hud-panel,
+body.easter-egg-active .hud-top-left,
+body.easter-egg-active .hud-top-right,
+body.easter-egg-active #timeControlDock,
+body.easter-egg-active .sim-dock {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.4s ease;
+}
+
+.lunar-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lunar-badge-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lunar-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 8px var(--amber);
+  animation: pulse-dot 1.2s infinite ease-in-out;
+}
+
+.lunar-badge-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--amber);
+  letter-spacing: 1.5px;
+}
+
+.lunar-badge-hotkey {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--cyan);
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  letter-spacing: 0.5px;
+}
+
+.lunar-title-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lunar-main-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.lunar-status-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--cyan);
+  letter-spacing: 1px;
+}
+
+.lunar-telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 10px 14px;
+  border-radius: 12px;
+}
+
+.lunar-telem-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lunar-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.8px;
+}
+
+.lunar-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.lunar-val.highlight {
+  color: var(--amber);
+}
+
+.lunar-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.lunar-rotate-dock {
+  background: rgba(10, 16, 32, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.lunar-btn-turn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+  padding: 0;
+}
+
+.lunar-btn-turn:hover {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: var(--cyan);
+  color: var(--cyan);
+  transform: scale(1.08);
+}
+
+.lunar-btn-turn:active {
+  transform: scale(0.92);
+}
+
+.lunar-rotate-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 0 4px;
+  user-select: none;
+  letter-spacing: 0.3px;
+}
+
+.lunar-btn-return {
+  background: rgba(10, 16, 32, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 9999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.lunar-btn-return:hover {
+  background: rgba(56, 189, 248, 0.28);
+  border-color: var(--cyan);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+  transform: translateY(-1px);
+}
+
+.lunar-btn-return:active {
+  transform: scale(0.97);
+}
+
+.lunar-tip {
+  font-size: 10px;
+  color: var(--text-secondary);
+  line-height: 1.3;
+  text-align: right;
+}
+
+
+
+/* Lucy & David overlay */
+.edgerunners-duo {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  z-index: 30;
+  pointer-events: none;
+  width: min(380px, 42vw);
+  max-height: 42vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  opacity: 1;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.9));
+}
+
+.edgerunners-duo.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(35px);
+}
+
+.edgerunners-duo img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}

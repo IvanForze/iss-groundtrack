@@ -288,7 +288,36 @@
         <button class="dock-btn" id="camAsia">Asia</button>
         <button class="dock-btn active" id="camGlobal">Global Orbit</button>
       </div>
+
+      <!-- Character overlay -->
+      <div id="edgerunnersOverlay" class="edgerunners-duo hidden">
+        <img src="assets/textures/lucy_david.png" alt="Lucy and David on the Moon" id="edgerunnersImg">
+      </div>
     </div>
+  </div>
+
+  <!-- Lunar HUD -->
+  <div id="lunarEasterEggHUD" class="lunar-hud hidden">
+    <div class="lunar-rotate-dock">
+      <button class="lunar-btn-turn" id="btnRotateMoonLeft" title="Turn Moon counterclockwise (← / A)">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <span class="lunar-rotate-label">Turn Moon (← / →)</span>
+      <button class="lunar-btn-turn" id="btnRotateMoonRight" title="Turn Moon clockwise (→ / D)">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+    <button class="lunar-btn-return" id="btnExitMoon" title="Return to Earth & ISS (ESC)">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 14 4 9 9 4"/>
+        <path d="M20 20v-7a4 4 0 0 0-4-4H4"/>
+      </svg>
+      <span>Return to Earth (ESC)</span>
+    </button>
   </div>
 
   <!-- Timeline Dock -->
@@ -342,6 +371,7 @@
   <script src="js/viewers.js"></script>
   <script src="js/orbit.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/easter_egg.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

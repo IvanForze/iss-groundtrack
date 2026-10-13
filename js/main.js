@@ -4,14 +4,14 @@
   const { viewer3D, viewer2D, setSimulationCamera, zoomToISS, flyToLandingCamera } = window.appViewers;
   let isLandingActive = true;
 
-  // Медленное вращение Земли на лендинге
+  // Slow Earth rotation on landing
   viewer3D.scene.preRender.addEventListener(() => {
     if (isLandingActive && !viewer3D.trackedEntity) {
       viewer3D.scene.camera.rotate(Cesium.Cartesian3.UNIT_Z, 0.00022);
     }
   });
 
-  // Входная анимация при загрузке страницы
+  // Entrance typography animation
   function initLandingEntrance() {
     if (!window.gsap) return;
 
@@ -46,7 +46,7 @@
     );
   }
 
-  // Переход в симулятор: сначала стремительное приближение к Земле вместе с вылетом текста, затем плавный откат к общему обзору
+  // Transition from landing to simulator view
   function launchSimulation(e) {
     if (e) {
       e.preventDefault();
@@ -55,7 +55,7 @@
     if (!isLandingActive) return;
     isLandingActive = false;
 
-    // 1. 3D анимация текста "на зрителя" (fly towards camera)
+    // Animate landing typography forward
     if (window.gsap) {
       gsap.to('.landing-action', {
         scale: 0.85,
@@ -108,19 +108,16 @@
       });
     }
 
-    // 2. Плавный зум к Земле (общий вид симулятора)
     setSimulationCamera(2.4, () => {
       viewer3D.resize();
       viewer2D.resize();
     });
 
-    // 3. Отключение кликов по лендингу сразу после старта анимации
     setTimeout(() => {
       const hero = document.getElementById('landingHero');
       if (hero) hero.style.pointerEvents = 'none';
     }, 350);
 
-    // 4. Мягкое появление интерфейса симулятора после того, как текст полностью улетел
     setTimeout(() => {
       document.body.classList.remove('landing-active');
       viewer3D.resize();
@@ -130,7 +127,6 @@
       }
     }, 1150);
 
-    // 5. Окончательное скрытие контейнера лендинга
     setTimeout(() => {
       const hero = document.getElementById('landingHero');
       if (hero) hero.style.display = 'none';
@@ -159,7 +155,7 @@
     }, 2800);
   }
 
-  // Возврат на титульный экран
+  // Return to landing view
   function backToLanding(e) {
     if (e) {
       e.preventDefault();
@@ -183,12 +179,10 @@
     }
     document.body.classList.add('landing-active');
 
-    // Камера возвращается к горизонту полуземли
     flyToLandingCamera(2.2, () => {
       viewer3D.resize();
     });
 
-    // 3D анимация возвращения текста
     if (window.gsap) {
       gsap.fromTo('.landing-action',
         { scale: 0.8, opacity: 0 },
