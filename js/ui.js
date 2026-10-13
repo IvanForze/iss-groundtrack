@@ -496,6 +496,25 @@
     });
   }
 
+  const btnEarthRotation = document.getElementById('btnToggleEarthRotation');
+  const orbitShiftBox = document.getElementById('orbitShiftBox');
+
+  if (btnEarthRotation) {
+    btnEarthRotation.addEventListener('click', () => {
+      if (window.appOrbit && window.appOrbit.toggleEarthRotation) {
+        window.appOrbit.toggleEarthRotation();
+      }
+    });
+  }
+
+  if (orbitShiftBox) {
+    orbitShiftBox.addEventListener('click', () => {
+      if (window.appOrbit && window.appOrbit.toggleEarthRotation) {
+        window.appOrbit.toggleEarthRotation();
+      }
+    });
+  }
+
   const explainerModal = document.getElementById('explainerModal');
   const btnToggleExplainer = document.getElementById('btnToggleExplainer');
   const btnCloseExplainer = document.getElementById('btnCloseExplainer');
@@ -568,10 +587,66 @@
     dockButtons.forEach(btn => btn.classList.toggle('active', btn.id === id));
   }
 
+  const btnToggleFrame = document.getElementById('btnToggleFrame');
+  const frameLabel = document.getElementById('frameLabel');
+  const frameBadge = document.getElementById('frameBadge');
+  const frameBadgeText = document.getElementById('frameBadgeText');
+  const camInertial = document.getElementById('camInertial');
+
+  function updateFrameUI(mode) {
+    const isInertial = (mode === 'inertial');
+    if (window.appOrbit && window.appOrbit.set3DReferenceFrame) {
+      window.appOrbit.set3DReferenceFrame(mode);
+    }
+    if (btnToggleFrame) {
+      btnToggleFrame.classList.toggle('active', isInertial);
+      btnToggleFrame.classList.toggle('inertial', isInertial);
+    }
+    if (frameLabel) {
+      frameLabel.textContent = isInertial ? 'Frame: Inertial Space' : 'Frame: Earth';
+    }
+    if (frameBadge) {
+      frameBadge.classList.toggle('inertial', isInertial);
+    }
+    if (frameBadgeText) {
+      frameBadgeText.textContent = isInertial ? 'INERTIAL SPACE (ECI / ICRF)' : 'EARTH-FIXED (ECEF)';
+    }
+    if (isInertial) {
+      setActiveDockBtn('camInertial');
+    }
+  }
+
+  if (btnToggleFrame) {
+    btnToggleFrame.addEventListener('click', () => {
+      unbindCameraTracking();
+      if (window.appViewers && window.appViewers.toggleReferenceFrame) {
+        const newMode = window.appViewers.toggleReferenceFrame(updateFrameUI);
+        updateFrameUI(newMode);
+        if (newMode === 'fixed') {
+          setActiveDockBtn('camGlobal');
+        }
+      }
+    });
+  }
+
+  if (camInertial) {
+    camInertial.addEventListener('click', () => {
+      unbindCameraTracking();
+      if (window.appViewers && window.appViewers.setReferenceFrame) {
+        window.appViewers.setReferenceFrame('inertial', updateFrameUI);
+        updateFrameUI('inertial');
+      }
+    });
+  }
+
   const camGlobal = document.getElementById('camGlobal');
   if (camGlobal) {
     camGlobal.addEventListener('click', () => {
       unbindCameraTracking();
+      if (window.appViewers && window.appViewers.setReferenceFrame) {
+        window.appViewers.setReferenceFrame('fixed', updateFrameUI);
+        updateFrameUI('fixed');
+      }
       window.appViewers.setSimulationCamera(1.5);
       setActiveDockBtn('camGlobal');
     });
@@ -581,6 +656,10 @@
   if (camEurope) {
     camEurope.addEventListener('click', () => {
       unbindCameraTracking();
+      if (window.appViewers && window.appViewers.setReferenceFrame) {
+        window.appViewers.setReferenceFrame('fixed', updateFrameUI);
+        updateFrameUI('fixed');
+      }
       viewer3D.camera.flyTo({
         destination: Cesium.Cartesian3.fromDegrees(15.0, 50.0, 7000000),
         duration: 1.5
@@ -593,6 +672,10 @@
   if (camAmericas) {
     camAmericas.addEventListener('click', () => {
       unbindCameraTracking();
+      if (window.appViewers && window.appViewers.setReferenceFrame) {
+        window.appViewers.setReferenceFrame('fixed', updateFrameUI);
+        updateFrameUI('fixed');
+      }
       viewer3D.camera.flyTo({
         destination: Cesium.Cartesian3.fromDegrees(-95.0, 40.0, 9000000),
         duration: 1.5
@@ -605,6 +688,10 @@
   if (camAsia) {
     camAsia.addEventListener('click', () => {
       unbindCameraTracking();
+      if (window.appViewers && window.appViewers.setReferenceFrame) {
+        window.appViewers.setReferenceFrame('fixed', updateFrameUI);
+        updateFrameUI('fixed');
+      }
       viewer3D.camera.flyTo({
         destination: Cesium.Cartesian3.fromDegrees(100.0, 35.0, 8500000),
         duration: 1.5

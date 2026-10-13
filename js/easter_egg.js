@@ -22,6 +22,53 @@
 
   const moonTextureUrl = getMoonTextureUrl();
 
+  // Resolve audio URL for Cyberpunk Edgerunners theme
+  function getMoonAudioUrl() {
+    const isFinalProject = window.location.pathname.includes('/final-project');
+    const origin = window.location.origin || (window.location.protocol + '//' + window.location.host);
+    const filename = encodeURIComponent('Rosa Walton & Hallie Coggins - I Really Want To Stay At Your House.mp3');
+    if (isFinalProject) {
+      return `${origin}/final-project/assets/${filename}`;
+    }
+    const dummy = document.createElement('a');
+    dummy.href = `assets/${filename}`;
+    return dummy.href;
+  }
+
+  let moonAudio = null;
+
+  function getMoonAudioElement() {
+    if (!moonAudio) {
+      moonAudio = document.getElementById('lunarThemeAudio');
+      if (!moonAudio) {
+        moonAudio = new Audio(getMoonAudioUrl());
+      }
+      moonAudio.loop = true;
+      moonAudio.volume = 0.75;
+    }
+    return moonAudio;
+  }
+
+  function playMoonAudio() {
+    const audio = getMoonAudioElement();
+    if (audio) {
+      audio.currentTime = 0;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn('[Moon Audio] Playback prevented:', err);
+        });
+      }
+    }
+  }
+
+  function stopMoonAudio() {
+    if (moonAudio) {
+      moonAudio.pause();
+      moonAudio.currentTime = 0;
+    }
+  }
+
   // Configure textured Moon on Cesium scene
   function applyMoonTexture() {
     try {
@@ -169,6 +216,7 @@
     if (isEasterEggActive) return;
     isEasterEggActive = true;
 
+    playMoonAudio();
     applyMoonTexture();
     document.body.classList.add('easter-egg-active');
 
@@ -273,6 +321,13 @@
   function exitMoonEasterEgg() {
     if (!isEasterEggActive) return;
     isEasterEggActive = false;
+
+    stopMoonAudio();
+    const audioBadge = document.getElementById('lunarAudioBadge');
+    if (audioBadge && moonAudio) {
+      moonAudio.muted = false;
+      audioBadge.classList.remove('muted');
+    }
 
     document.body.classList.remove('easter-egg-active');
 
@@ -409,6 +464,16 @@
     if (btnRight) {
       btnRight.addEventListener('click', () => {
         moonSurfaceAngle += 0.12;
+      });
+    }
+
+    const btnAudio = document.getElementById('lunarAudioBadge');
+    if (btnAudio) {
+      btnAudio.addEventListener('click', () => {
+        const audio = getMoonAudioElement();
+        if (!audio) return;
+        audio.muted = !audio.muted;
+        btnAudio.classList.toggle('muted', audio.muted);
       });
     }
   });

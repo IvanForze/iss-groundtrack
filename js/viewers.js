@@ -121,6 +121,57 @@
   }
   fit2DWorld(0);
 
+  let isIcrfActive = false;
+  let icrfListenerRemover = null;
+
+  function setReferenceFrame(mode, onFrameChange = null) {
+    const targetInertial = (mode === 'inertial');
+    if (targetInertial === isIcrfActive) return;
+    isIcrfActive = targetInertial;
+
+    if (isIcrfActive) {
+      if (icrfListenerRemover) {
+        icrfListenerRemover();
+        icrfListenerRemover = null;
+      }
+
+      // Initial diagonal perspective overlooking Earth and inclined orbital ring
+      const initialOffset = new Cesium.Cartesian3(0.0, -22000000.0, 16000000.0);
+      const initialIcrf = Cesium.Transforms.computeIcrfToFixedMatrix(viewer3D.clock.currentTime) || Cesium.Matrix3.IDENTITY;
+      viewer3D.camera.lookAtTransform(
+        Cesium.Matrix4.fromRotationTranslation(initialIcrf),
+        initialOffset
+      );
+
+      icrfListenerRemover = viewer3D.scene.preRender.addEventListener((scene, time) => {
+        if (!isIcrfActive || scene.mode !== Cesium.SceneMode.SCENE3D) return;
+        const icrfToFixed = Cesium.Transforms.computeIcrfToFixedMatrix(time);
+        if (Cesium.defined(icrfToFixed)) {
+          const offset = Cesium.Cartesian3.clone(viewer3D.camera.position);
+          const transform = Cesium.Matrix4.fromRotationTranslation(icrfToFixed);
+          viewer3D.camera.lookAtTransform(transform, offset);
+        }
+      });
+    } else {
+      if (icrfListenerRemover) {
+        icrfListenerRemover();
+        icrfListenerRemover = null;
+      }
+      viewer3D.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+      setSimulationCamera(1.5);
+    }
+
+    if (typeof onFrameChange === 'function') {
+      onFrameChange(isIcrfActive ? 'inertial' : 'fixed');
+    }
+  }
+
+  function toggleReferenceFrame(onFrameChange = null) {
+    const newMode = isIcrfActive ? 'fixed' : 'inertial';
+    setReferenceFrame(newMode, onFrameChange);
+    return newMode;
+  }
+
   window.appViewers = {
     viewer3D,
     viewer2D,
@@ -128,6 +179,9 @@
     setSimulationCamera,
     zoomToISS,
     flyToLandingCamera,
-    fit2DWorld
+    fit2DWorld,
+    setReferenceFrame,
+    toggleReferenceFrame,
+    isReferenceFrameInertial: () => isIcrfActive
   };
 })();

@@ -44,8 +44,8 @@
         color: Cesium.Color.fromCssColorString('#38bdf8')
       }),
       width: 4,
-      leadTime: ORBIT_PERIOD_SEC,
-      trailTime: ORBIT_PERIOD_SEC
+      leadTime: ORBIT_PERIOD_SEC * 1.5,
+      trailTime: ORBIT_PERIOD_SEC * 2.5
     }
   });
 
@@ -65,22 +65,27 @@
         color: Cesium.Color.fromCssColorString('#f59e0b')
       }),
       width: 3.5,
-      leadTime: ORBIT_PERIOD_SEC,
-      trailTime: ORBIT_PERIOD_SEC * 3
+      leadTime: ORBIT_PERIOD_SEC * 1.5,
+      trailTime: ORBIT_PERIOD_SEC * 3.5
     }
   });
 
-  // Generate clean, monotonically sampled orbit trajectory
-  function updateOrbitData(satrecInstance, baseStartTime) {
-    const newPositionProperty = new Cesium.SampledPositionProperty();
-    newPositionProperty.setInterpolationOptions({
-      interpolationDegree: 2,
-      interpolationAlgorithm: Cesium.HermitePolynomialApproximation
-    });
+  let cachedEciSamples = [];
+  let referenceGmst = 0;
+  let currentRotationFactor = 1.0;
+  let targetRotationFactor = 1.0;
+  let isEarthRotationActive = true;
+  let rotationTween = null;
 
-    const sampleStepSec = 10;
-    const pastSeconds = ORBIT_PERIOD_SEC * 2;
-    const futureSeconds = totalDurationSec + ORBIT_PERIOD_SEC * 2;
+  // Precompute inertial ECI samples once
+  function precomputeEciSamples(satrecInstance, baseStartTime) {
+    cachedEciSamples = [];
+    const sampleStepSec = 20;
+    const pastSeconds = ORBIT_PERIOD_SEC * 3;
+    const futureSeconds = totalDurationSec + ORBIT_PERIOD_SEC * 3;
+
+    const baseDate = Cesium.JulianDate.toDate(baseStartTime);
+    referenceGmst = satellite.gstime(baseDate);
 
     for (let offset = -pastSeconds; offset <= futureSeconds; offset += sampleStepSec) {
       const time = addSeconds(baseStartTime, offset);
@@ -88,21 +93,164 @@
 
       const pv = satellite.propagate(satrecInstance, jsDate);
       if (pv && pv.position) {
-        const gmst = satellite.gstime(jsDate);
-        const geodetic = satellite.eciToGeodetic(pv.position, gmst);
-        const cartesian = Cesium.Cartesian3.fromRadians(
-          geodetic.longitude,
-          geodetic.latitude,
-          geodetic.height * 1000
-        );
-        newPositionProperty.addSample(time, cartesian);
+        const realGmst = satellite.gstime(jsDate);
+        cachedEciSamples.push({
+          time,
+          eciPos: pv.position,
+          deltaGmst: realGmst - referenceGmst
+        });
       }
     }
+  }
 
-    // Atomically assign clean property to 3D and 2D entities
-    iss3D.position = newPositionProperty;
-    iss3D.orientation = new Cesium.VelocityOrientationProperty(newPositionProperty);
-    iss2D.position = newPositionProperty;
+  // Create position property interpolated for specific rotation factor
+  function createPositionProperty(factor) {
+    const newPositionProperty = new Cesium.SampledPositionProperty();
+    newPositionProperty.setInterpolationOptions({
+      interpolationDegree: 2,
+      interpolationAlgorithm: Cesium.HermitePolynomialApproximation
+    });
+
+    for (let i = 0; i < cachedEciSamples.length; i++) {
+      const s = cachedEciSamples[i];
+      // When factor = 1: standard Earth rotation
+      // When factor = 0: Earth stands still at reference orientation
+      const gmst = referenceGmst + factor * s.deltaGmst;
+      const geodetic = satellite.eciToGeodetic(s.eciPos, gmst);
+      const cartesian = Cesium.Cartesian3.fromRadians(
+        geodetic.longitude,
+        geodetic.latitude,
+        geodetic.height * 1000
+      );
+      newPositionProperty.addSample(s.time, cartesian);
+    }
+    return newPositionProperty;
+  }
+
+  let isInertial3DMode = false;
+
+  // Create position property in true INERTIAL space (ECI / ICRF)
+  function createInertialPositionProperty() {
+    const prop = new Cesium.SampledPositionProperty(Cesium.ReferenceFrame.INERTIAL);
+    prop.setInterpolationOptions({
+      interpolationDegree: 2,
+      interpolationAlgorithm: Cesium.HermitePolynomialApproximation
+    });
+
+    for (let i = 0; i < cachedEciSamples.length; i++) {
+      const s = cachedEciSamples[i];
+      // s.eciPos is already inertial (in km). Convert to meters:
+      const cartesian = new Cesium.Cartesian3(
+        s.eciPos.x * 1000,
+        s.eciPos.y * 1000,
+        s.eciPos.z * 1000
+      );
+      prop.addSample(s.time, cartesian);
+    }
+    return prop;
+  }
+
+  function set3DReferenceFrame(mode) {
+    isInertial3DMode = (mode === 'inertial');
+    if (isInertial3DMode) {
+      const inertialProp = createInertialPositionProperty();
+      iss3D.position = inertialProp;
+      iss3D.orientation = new Cesium.VelocityOrientationProperty(inertialProp);
+    } else {
+      const fixedProp = createPositionProperty(currentRotationFactor);
+      iss3D.position = fixedProp;
+      iss3D.orientation = new Cesium.VelocityOrientationProperty(fixedProp);
+    }
+  }
+
+  function applyRotationFactor(factor) {
+    const prop = createPositionProperty(factor);
+    if (!isInertial3DMode) {
+      iss3D.position = prop;
+      iss3D.orientation = new Cesium.VelocityOrientationProperty(prop);
+    }
+    iss2D.position = prop;
+  }
+
+  function updateShiftDisplay(factor) {
+    const shiftValEl = document.getElementById('shiftValueDisplay');
+    const shiftTagEl = document.getElementById('shiftStatusTag');
+    if (shiftValEl) {
+      if (factor <= 0.01) {
+        shiftValEl.innerHTML = `Δλ = 0.0° <span class="shift-sub">/ pass (Single Repeating Track!)</span>`;
+      } else {
+        const deg = (22.9 * factor).toFixed(1);
+        const km = Math.round(2550 * factor);
+        shiftValEl.innerHTML = `Δλ ≈ -${deg}° <span class="shift-sub">/ pass (~${km.toLocaleString()} km)</span>`;
+      }
+    }
+    if (shiftTagEl) {
+      if (factor <= 0.01) {
+        shiftTagEl.textContent = 'SPIN FROZEN';
+        shiftTagEl.classList.add('frozen');
+      } else {
+        shiftTagEl.textContent = 'SPIN ON';
+        shiftTagEl.classList.remove('frozen');
+      }
+    }
+  }
+
+  function toggleEarthRotation(enable) {
+    if (typeof enable === 'boolean') {
+      isEarthRotationActive = enable;
+    } else {
+      isEarthRotationActive = !isEarthRotationActive;
+    }
+
+    targetRotationFactor = isEarthRotationActive ? 1.0 : 0.0;
+
+    if (rotationTween) {
+      rotationTween.kill();
+      rotationTween = null;
+    }
+
+    const animObj = { factor: currentRotationFactor };
+    if (window.gsap) {
+      rotationTween = gsap.to(animObj, {
+        factor: targetRotationFactor,
+        duration: 1.8,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          currentRotationFactor = animObj.factor;
+          applyRotationFactor(currentRotationFactor);
+          updateShiftDisplay(currentRotationFactor);
+        },
+        onComplete: () => {
+          currentRotationFactor = targetRotationFactor;
+          applyRotationFactor(currentRotationFactor);
+          updateShiftDisplay(currentRotationFactor);
+          rotationTween = null;
+        }
+      });
+    } else {
+      currentRotationFactor = targetRotationFactor;
+      applyRotationFactor(currentRotationFactor);
+      updateShiftDisplay(currentRotationFactor);
+    }
+
+    const btn = document.getElementById('btnToggleEarthRotation');
+    const lbl = document.getElementById('rotationLabel');
+    if (btn) {
+      btn.classList.toggle('active', isEarthRotationActive);
+      btn.classList.toggle('frozen', !isEarthRotationActive);
+    }
+    if (lbl) {
+      lbl.textContent = isEarthRotationActive ? 'Earth Spin: ON' : 'Earth Spin: OFF';
+    }
+
+    return isEarthRotationActive;
+  }
+
+  // Generate orbit trajectory
+  function updateOrbitData(satrecInstance, baseStartTime) {
+    precomputeEciSamples(satrecInstance, baseStartTime);
+    applyRotationFactor(currentRotationFactor);
+    updateShiftDisplay(currentRotationFactor);
   }
 
   updateOrbitData(activeSatrec, startTime);
@@ -185,6 +333,10 @@
     get totalDurationSec() { return totalDurationSec; },
     ORBIT_PERIOD_SEC,
     iss3D,
-    iss2D
+    iss2D,
+    toggleEarthRotation,
+    isEarthRotationActive: () => isEarthRotationActive,
+    getRotationFactor: () => currentRotationFactor,
+    set3DReferenceFrame
   };
 })();
