@@ -109,33 +109,40 @@
     }
 
     // 2. Плавный зум к Земле (общий вид симулятора)
-    setSimulationCamera(2.2, () => {
+    setSimulationCamera(2.4, () => {
       viewer3D.resize();
       viewer2D.resize();
     });
 
-    // 3. Открытие интерфейса симулятора
+    // 3. Отключение кликов по лендингу сразу после старта анимации
+    setTimeout(() => {
+      const hero = document.getElementById('landingHero');
+      if (hero) hero.style.pointerEvents = 'none';
+    }, 350);
+
+    // 4. Мягкое появление интерфейса симулятора после того, как текст полностью улетел
     setTimeout(() => {
       document.body.classList.remove('landing-active');
-    }, 400);
+    }, 1150);
 
+    // 5. Окончательное скрытие контейнера лендинга
     setTimeout(() => {
       const hero = document.getElementById('landingHero');
       if (hero) hero.style.display = 'none';
       viewer3D.resize();
       viewer2D.resize();
-    }, 900);
+    }, 1650);
 
     const resizeInterval = setInterval(() => {
       viewer3D.resize();
       viewer2D.resize();
-    }, 50);
+    }, 35);
 
     setTimeout(() => {
       clearInterval(resizeInterval);
       viewer3D.resize();
       viewer2D.resize();
-    }, 2400);
+    }, 2800);
   }
 
   // Возврат на титульный экран
@@ -149,6 +156,9 @@
 
     if (window.appUI && window.appUI.unbindCameraTracking) {
       window.appUI.unbindCameraTracking();
+    }
+    if (window.appUI && window.appUI.setViewMode) {
+      window.appUI.setViewMode('split');
     }
 
     const hero = document.getElementById('landingHero');

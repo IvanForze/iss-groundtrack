@@ -43,11 +43,11 @@
     }
   };
 
-  const SIMULATION_CAM = {
-    destination: Cesium.Cartesian3.fromDegrees(37.6173, 55.7558, 17500000),
+  const GLOBAL_SIM_CAM = {
+    destination: Cesium.Cartesian3.fromDegrees(0.0, 15.0, 22500000),
     orientation: {
       heading: Cesium.Math.toRadians(0),
-      pitch: Cesium.Math.toRadians(-90),
+      pitch: Cesium.Math.toRadians(-89.5),
       roll: 0.0
     }
   };
@@ -57,17 +57,21 @@
   }
   setLandingCamera();
 
-  function setSimulationCamera(duration = 2.2, onComplete = null) {
+  function setSimulationCamera(duration = 2.0, onComplete = null) {
+    if (typeof duration === 'function') {
+      onComplete = duration;
+      duration = 2.0;
+    }
     viewer3D.camera.flyTo({
-      destination: SIMULATION_CAM.destination,
-      orientation: SIMULATION_CAM.orientation,
-      duration,
+      destination: GLOBAL_SIM_CAM.destination,
+      orientation: GLOBAL_SIM_CAM.orientation,
+      duration: duration || 2.0,
       easingFunction: Cesium.EasingFunction.QUADRATIC_IN_OUT,
       complete: onComplete
     });
   }
 
-  function zoomToISS(duration = 2.2, onComplete = null) {
+  function zoomToISS(duration = 2.0, onComplete = null) {
     setSimulationCamera(duration, onComplete);
   }
 

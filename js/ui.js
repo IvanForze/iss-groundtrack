@@ -198,6 +198,50 @@
     btnReset2D.addEventListener('click', () => window.appViewers.fit2DWorld());
   }
 
+  const modeButtons = document.querySelectorAll('.mode-btn');
+  let currentViewMode = 'split';
+
+  function setViewMode(mode) {
+    currentViewMode = mode;
+    document.body.classList.remove('view-split', 'view-globe', 'view-map');
+    document.body.classList.add(`view-${mode}`);
+
+    const p2D = document.getElementById('cesium2D');
+    const p3D = document.getElementById('cesium3D');
+    if (p2D) p2D.style.flex = '';
+    if (p3D) p3D.style.flex = '';
+
+    modeButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+
+    const interval = setInterval(() => {
+      viewer3D.resize();
+      viewer2D.resize();
+    }, 30);
+    setTimeout(() => {
+      clearInterval(interval);
+      viewer3D.resize();
+      viewer2D.resize();
+      if (mode === 'map' || mode === 'split') {
+        window.appViewers.fit2DWorld();
+      }
+    }, 500);
+  }
+
+  modeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      setViewMode(btn.dataset.mode);
+    });
+  });
+
+  const btnCloseMap = document.getElementById('btnCloseMap');
+  if (btnCloseMap) {
+    btnCloseMap.addEventListener('click', () => {
+      setViewMode('globe');
+    });
+  }
+
   const dockButtons = document.querySelectorAll('.dock-btn');
   function setActiveDockBtn(id) {
     dockButtons.forEach(btn => btn.classList.toggle('active', btn.id === id));
@@ -288,6 +332,7 @@
   window.appUI = {
     unbindCameraTracking,
     setTrackedState,
-    setActiveDockBtn
+    setActiveDockBtn,
+    setViewMode
   };
 })();
