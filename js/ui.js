@@ -20,12 +20,21 @@
   const simTimeDisplay = document.getElementById('simTimeDisplay');
   const btnLiveNow = document.getElementById('btnLiveNow');
 
+  const ICON_PAUSE_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
+  const ICON_PLAY_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+
+  function setPlayPauseIcon(isPlaying) {
+    if (playIcon) {
+      playIcon.innerHTML = isPlaying ? ICON_PAUSE_SVG : ICON_PLAY_SVG;
+    }
+  }
+
   let isScrubbing = false;
 
   if (btnPlayPause) {
     btnPlayPause.addEventListener('click', () => {
       viewer3D.clock.shouldAnimate = !viewer3D.clock.shouldAnimate;
-      if (playIcon) playIcon.textContent = viewer3D.clock.shouldAnimate ? '⏸' : '▶';
+      setPlayPauseIcon(viewer3D.clock.shouldAnimate);
     });
   }
 
@@ -34,7 +43,7 @@
       viewer3D.clock.currentTime = Cesium.JulianDate.now();
       viewer3D.clock.multiplier = 1;
       viewer3D.clock.shouldAnimate = true;
-      if (playIcon) playIcon.textContent = '⏸';
+      setPlayPauseIcon(true);
 
       document.querySelectorAll('.speed-btn').forEach(b => {
         b.classList.toggle('active', b.dataset.speed === '1');

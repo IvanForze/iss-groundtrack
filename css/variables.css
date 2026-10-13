@@ -7,7 +7,7 @@
   --glass-surface-active: rgba(30, 44, 72, 0.85);
   --glass-border: rgba(255, 255, 255, 0.12);
   --glass-border-focus: rgba(255, 255, 255, 0.25);
-  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  --glass-highlight: 0 0 0 transparent;
   --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
 
   --cyan: #38bdf8;

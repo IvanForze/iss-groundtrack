@@ -109,7 +109,11 @@
 
     <div class="nav-right">
       <button class="explainer-toggle-btn" id="btnToggleExplainer">
-        <span class="info-icon">?</span>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
         <span>Science</span>
       </button>
       <div class="status-pill" id="apiStatusPill">
@@ -133,11 +137,22 @@
         <span class="badge-accent">Orbital Mechanics</span>
         <h3>Why does the ISS never pass on the same path twice?</h3>
       </div>
-      <button class="close-btn" id="btnCloseExplainer">✕</button>
+      <button class="close-btn" id="btnCloseExplainer" title="Close">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
     </div>
     <div class="explainer-body">
       <div class="fact-card">
-        <div class="fact-icon">🌍</div>
+        <div class="fact-icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        </div>
         <div class="fact-content">
           <h4>1. Earth Rotates Underneath (~22.9° Westward Shift)</h4>
           <p>The ISS takes approximately <strong>92.6 minutes</strong> to complete one full revolution in space. While the ISS completes 1 orbit, the Earth spins eastward by roughly <strong>23 degrees of longitude (~2,550 km)</strong> beneath it. Therefore, each subsequent pass is shifted westward across a completely new region!</p>
@@ -145,7 +160,12 @@
       </div>
 
       <div class="fact-card">
-        <div class="fact-icon">📐</div>
+        <div class="fact-icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+          </svg>
+        </div>
         <div class="fact-content">
           <h4>2. 51.6° Orbital Inclination</h4>
           <p>The ISS orbit is tilted at <strong>51.6 degrees</strong> to Earth's equator. This creates the characteristic sinusoidal ground track waveform visible on the 2D map, covering areas between 51.6° N and 51.6° S latitude.</p>
@@ -153,7 +173,12 @@
       </div>
 
       <div class="fact-card">
-        <div class="fact-icon">🔄</div>
+        <div class="fact-icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+        </div>
         <div class="fact-content">
           <h4>3. Nodal Precession (Earth's Oblateness)</h4>
           <p>Earth is not a perfect sphere; its equatorial bulge creates a gravitational perturbation that slowly rotates the orbital plane westward by about <strong>5 degrees per day</strong>.</p>
@@ -161,7 +186,12 @@
       </div>
     </div>
     <div class="explainer-footer">
-      <span>💡 <em>Use the time slider below to speed up to 60x or 300x to watch each wave shift westward!</em></span>
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="9" y1="18" x2="15" y2="18"/>
+        <line x1="10" y1="22" x2="14" y2="22"/>
+        <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5.76.76 1.23 1.52 1.41 2.5"/>
+      </svg>
+      <span><em>Use the time slider below to speed up to 60x or 300x to watch each wave shift westward!</em></span>
     </div>
   </aside>
 
@@ -170,14 +200,27 @@
     <!-- 2D Ground Track -->
     <div id="cesium2D">
       <div class="hud-panel hud-top-left">
-        <div class="hud-card-header">
-          <div>
-            <div class="hud-tag">GROUND TRACK</div>
-            <div class="hud-title">2D Shift View</div>
-          </div>
-          <button class="hud-close-btn" id="btnCloseMap" title="Hide 2D Map (Center 3D Earth)">✕</button>
+        <div class="hud-track-info">
+          <div class="hud-tag">GROUND TRACK</div>
+          <div class="hud-title">2D Shift View</div>
         </div>
-        <button class="hud-action-btn" id="btnReset2D">Fit World</button>
+        <div class="hud-track-actions">
+          <button class="hud-action-btn" id="btnReset2D" title="Fit Entire World (EPSG:4326)">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 3 21 3 21 9"/>
+              <polyline points="9 21 3 21 3 15"/>
+              <line x1="21" y1="3" x2="14" y2="10"/>
+              <line x1="3" y1="21" x2="10" y2="14"/>
+            </svg>
+            <span>Fit World</span>
+          </button>
+          <button class="hud-close-btn" id="btnCloseMap" title="Hide 2D Map (Switch to 3D Globe)">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div class="hud-orbit-shift-box">
@@ -252,7 +295,12 @@
   <footer id="timeControlDock">
     <div class="dock-control-group">
       <button class="ctrl-btn play-pause-btn" id="btnPlayPause" title="Play / Pause">
-        <span id="playIcon">⏸</span>
+        <span id="playIcon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <rect x="6" y="4" width="4" height="16" rx="1"/>
+            <rect x="14" y="4" width="4" height="16" rx="1"/>
+          </svg>
+        </span>
       </button>
       <button class="live-btn" id="btnLiveNow" title="Return to current real time">
         <span class="live-dot"></span>

@@ -12,9 +12,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 16px 0 9px;
   z-index: 100;
-  box-shadow: var(--glass-shadow), var(--glass-highlight);
+  box-shadow: var(--glass-shadow);
   transform: translateY(0);
   opacity: 1;
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.75s ease;
@@ -392,7 +392,7 @@ body.view-map #cesium3D {
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), var(--glass-highlight);
+  box-shadow: var(--glass-shadow);
   border-radius: 24px;
   padding: 14px 18px;
   display: flex;
@@ -413,37 +413,59 @@ body.landing-active .hud-panel {
 .hud-top-left {
   top: 80px;
   left: 20px;
-  width: calc(100% - 40px);
-  max-width: 380px;
-  border-radius: 18px;
-  padding: 10px 14px;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  width: auto;
+  max-width: none;
+  padding: 8px 10px 8px 16px;
+  border-radius: 9999px;
 }
 
-.hud-card-header {
+.hud-track-info {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.hud-track-info .hud-tag {
+  line-height: 1.1;
+}
+
+.hud-track-info .hud-title {
+  line-height: 1.2;
+}
+
+.hud-track-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .hud-close-btn {
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--text-secondary);
   font-size: 11px;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 
 .hud-close-btn:hover {
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.hud-close-btn:active {
+  transform: scale(0.95);
 }
 
 .hud-top-right {
@@ -468,21 +490,29 @@ body.landing-active .hud-panel {
 }
 
 .hud-action-btn {
-  margin-top: 6px;
-  padding: 4px 12px;
+  padding: 5px 12px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.16);
   color: #fff;
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
   border-radius: 9999px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 
 .hud-action-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: var(--cyan);
+}
+
+.hud-action-btn:active {
+  transform: scale(0.97);
 }
 
 .hud-orbit-shift-box {
@@ -665,7 +695,7 @@ body.landing-active .hud-badge-bottom {
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), var(--glass-highlight);
+  box-shadow: var(--glass-shadow);
   padding: 4px 6px;
   border-radius: 9999px;
   opacity: 1;
@@ -716,10 +746,10 @@ body.landing-active .hud-camera-dock {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 20px 0 14px;
   gap: 20px;
   z-index: 100;
-  box-shadow: var(--glass-shadow), var(--glass-highlight);
+  box-shadow: var(--glass-shadow);
   transform: translateY(0);
   opacity: 1;
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.75s ease;
@@ -773,12 +803,15 @@ body.landing-active #timeControlDock {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: #fff;
-  font-size: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.play-pause-btn svg {
+  display: block;
 }
 
 .play-pause-btn:hover {
@@ -974,7 +1007,15 @@ body.landing-active #timeControlDock {
 }
 
 .fact-icon {
-  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  color: var(--cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
@@ -997,4 +1038,11 @@ body.landing-active #timeControlDock {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 11px;
   color: var(--emerald);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.explainer-footer svg {
+  flex-shrink: 0;
 }
