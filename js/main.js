@@ -123,6 +123,11 @@
     // 4. Мягкое появление интерфейса симулятора после того, как текст полностью улетел
     setTimeout(() => {
       document.body.classList.remove('landing-active');
+      viewer3D.resize();
+      viewer2D.resize();
+      if (window.appViewers && window.appViewers.fit2DWorld) {
+        window.appViewers.fit2DWorld(0);
+      }
     }, 1150);
 
     // 5. Окончательное скрытие контейнера лендинга
@@ -131,17 +136,26 @@
       if (hero) hero.style.display = 'none';
       viewer3D.resize();
       viewer2D.resize();
+      if (window.appViewers && window.appViewers.fit2DWorld) {
+        window.appViewers.fit2DWorld(0);
+      }
     }, 1650);
 
     const resizeInterval = setInterval(() => {
       viewer3D.resize();
       viewer2D.resize();
+      if (window.appViewers && window.appViewers.fit2DWorld) {
+        window.appViewers.fit2DWorld(0);
+      }
     }, 35);
 
     setTimeout(() => {
       clearInterval(resizeInterval);
       viewer3D.resize();
       viewer2D.resize();
+      if (window.appViewers && window.appViewers.fit2DWorld) {
+        window.appViewers.fit2DWorld(0);
+      }
     }, 2800);
   }
 

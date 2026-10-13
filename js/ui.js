@@ -218,13 +218,16 @@
     const interval = setInterval(() => {
       viewer3D.resize();
       viewer2D.resize();
+      if (window.appViewers && window.appViewers.fit2DWorld) {
+        window.appViewers.fit2DWorld(0);
+      }
     }, 30);
     setTimeout(() => {
       clearInterval(interval);
       viewer3D.resize();
       viewer2D.resize();
-      if (mode === 'map' || mode === 'split') {
-        window.appViewers.fit2DWorld();
+      if (window.appViewers && window.appViewers.fit2DWorld) {
+        window.appViewers.fit2DWorld(0);
       }
     }, 500);
   }
@@ -316,6 +319,9 @@
         panel3D.style.flex = '1';
         viewer2D.resize();
         viewer3D.resize();
+        if (window.appViewers && window.appViewers.fit2DWorld) {
+          window.appViewers.fit2DWorld(0);
+        }
       }
     });
 
@@ -325,6 +331,9 @@
         document.body.style.cursor = '';
         viewer2D.resize();
         viewer3D.resize();
+        if (window.appViewers && window.appViewers.fit2DWorld) {
+          window.appViewers.fit2DWorld(0);
+        }
       }
     });
   }

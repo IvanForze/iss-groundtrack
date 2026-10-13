@@ -105,15 +105,21 @@
     viewer2D.scene.screenSpaceCameraController.enableRotate = false;
   }
 
-  function fit2DWorld() {
-    viewer2D.camera.flyTo({
-      destination: Cesium.Rectangle.fromDegrees(-180, -90, 180, 90),
-      duration: 1.2
-    });
+  function fit2DWorld(duration = 0) {
+    const worldRect = Cesium.Rectangle.fromDegrees(-180, -85, 180, 85);
+    if (duration && duration > 0) {
+      viewer2D.camera.flyTo({
+        destination: worldRect,
+        duration,
+        easingFunction: Cesium.EasingFunction.QUADRATIC_IN_OUT
+      });
+    } else {
+      viewer2D.camera.setView({
+        destination: worldRect
+      });
+    }
   }
-  viewer2D.camera.setView({
-    destination: Cesium.Rectangle.fromDegrees(-180, -90, 180, 90)
-  });
+  fit2DWorld(0);
 
   window.appViewers = {
     viewer3D,

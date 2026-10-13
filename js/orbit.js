@@ -27,17 +27,9 @@
   clock.multiplier = 1;
   clock.shouldAnimate = true;
 
-  const positionProperty = new Cesium.SampledPositionProperty();
-  positionProperty.setInterpolationOptions({
-    interpolationDegree: 5,
-    interpolationAlgorithm: Cesium.LagrangePolynomialApproximation
-  });
-  const orientationProperty = new Cesium.VelocityOrientationProperty(positionProperty);
-
+  // 3D ISS entity in viewer3D
   const iss3D = window.appViewers.viewer3D.entities.add({
     name: 'International Space Station',
-    position: positionProperty,
-    orientation: orientationProperty,
     viewFrom: new Cesium.Cartesian3(-1200.0, -2400.0, 850.0),
     model: {
       uri: 'models/ISS_stationary.glb',
@@ -46,20 +38,20 @@
       scale: 25
     },
     path: {
-      resolution: 1,
+      resolution: 5,
       material: new Cesium.PolylineGlowMaterialProperty({
         glowPower: 0.25,
-        color: Cesium.Color.CYAN
+        color: Cesium.Color.fromCssColorString('#38bdf8')
       }),
       width: 4,
       leadTime: ORBIT_PERIOD_SEC,
-      trailTime: ORBIT_PERIOD_SEC * 4
+      trailTime: ORBIT_PERIOD_SEC
     }
   });
 
+  // 2D Ground Track Marker in viewer2D
   const iss2D = window.appViewers.viewer2D.entities.add({
     name: 'ISS Ground Track Marker',
-    position: positionProperty,
     point: {
       pixelSize: 14,
       color: Cesium.Color.fromCssColorString('#38bdf8'),
@@ -67,21 +59,28 @@
       outlineWidth: 2
     },
     path: {
-      resolution: 1,
+      resolution: 5,
       material: new Cesium.PolylineGlowMaterialProperty({
         glowPower: 0.35,
         color: Cesium.Color.fromCssColorString('#f59e0b')
       }),
       width: 3.5,
       leadTime: ORBIT_PERIOD_SEC,
-      trailTime: ORBIT_PERIOD_SEC * 4
+      trailTime: ORBIT_PERIOD_SEC * 3
     }
   });
 
-  function generateOrbitSamples(satrecInstance, baseStartTime) {
-    const sampleStepSec = 20;
-    const pastSeconds = ORBIT_PERIOD_SEC;
-    const futureSeconds = totalDurationSec;
+  // Generate clean, monotonically sampled orbit trajectory
+  function updateOrbitData(satrecInstance, baseStartTime) {
+    const newPositionProperty = new Cesium.SampledPositionProperty();
+    newPositionProperty.setInterpolationOptions({
+      interpolationDegree: 2,
+      interpolationAlgorithm: Cesium.HermitePolynomialApproximation
+    });
+
+    const sampleStepSec = 10;
+    const pastSeconds = ORBIT_PERIOD_SEC * 2;
+    const futureSeconds = totalDurationSec + ORBIT_PERIOD_SEC * 2;
 
     for (let offset = -pastSeconds; offset <= futureSeconds; offset += sampleStepSec) {
       const time = addSeconds(baseStartTime, offset);
@@ -96,12 +95,17 @@
           geodetic.latitude,
           geodetic.height * 1000
         );
-        positionProperty.addSample(time, cartesian);
+        newPositionProperty.addSample(time, cartesian);
       }
     }
+
+    // Atomically assign clean property to 3D and 2D entities
+    iss3D.position = newPositionProperty;
+    iss3D.orientation = new Cesium.VelocityOrientationProperty(newPositionProperty);
+    iss2D.position = newPositionProperty;
   }
 
-  generateOrbitSamples(activeSatrec, startTime);
+  updateOrbitData(activeSatrec, startTime);
 
   async function fetchRealISSData() {
     const apiStatusText = document.getElementById('apiStatusText');
@@ -133,7 +137,7 @@
       clock.multiplier = 1;
       clock.shouldAnimate = true;
 
-      generateOrbitSamples(activeSatrec, startTime);
+      updateOrbitData(activeSatrec, startTime);
 
       if (apiStatusText) apiStatusText.textContent = `WTIA LIVE (NORAD ${posData.id})`;
       if (issVisibilityEl && posData.visibility) {
@@ -154,7 +158,7 @@
       clock.multiplier = 1;
       clock.shouldAnimate = true;
 
-      generateOrbitSamples(activeSatrec, startTime);
+      updateOrbitData(activeSatrec, startTime);
     }
   }
 
