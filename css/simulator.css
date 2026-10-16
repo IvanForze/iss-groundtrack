@@ -327,7 +327,6 @@ body.landing-active #topNav {
   display: block;
 }
 
-/* Landing state: 3D is 100%, 2D and divider smoothly hidden */
 body.landing-active #cesium2D {
   flex: 0 0 0px !important;
   min-width: 0 !important;
@@ -347,7 +346,6 @@ body.landing-active #cesium3D {
   width: 100% !important;
 }
 
-/* 3D Globe mode: 2D collapsed to 0, 3D takes full width */
 body.view-globe #cesium2D {
   flex: 0 0 0px !important;
   min-width: 0 !important;
@@ -365,7 +363,6 @@ body.view-globe #cesium3D {
   width: 100% !important;
 }
 
-/* 2D Track mode: 2D takes full width, 3D collapsed to 0 */
 body.view-map #cesium2D {
   flex: 1 !important;
   width: 100% !important;
@@ -1187,7 +1184,6 @@ body.landing-active #timeControlDock {
   transform: translateY(0);
 }
 
-/* Easter egg mode: hide simulator HUD */
 body.easter-egg-active #topNav,
 body.easter-egg-active .hud-camera-dock,
 body.easter-egg-active .hud-panel,
@@ -1446,9 +1442,6 @@ body.easter-egg-active .sim-dock {
   text-align: right;
 }
 
-
-
-/* Lucy & David overlay */
 .edgerunners-duo {
   position: absolute;
   bottom: 0;

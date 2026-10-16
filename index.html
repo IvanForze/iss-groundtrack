@@ -17,7 +17,6 @@
 </head>
 <body class="landing-active view-split">
 
-  <!-- Landing Screen -->
   <div id="landingHero">
     <div class="landing-header">
       <div class="landing-brand">
@@ -58,7 +57,6 @@
     </div>
   </div>
 
-  <!-- Top Navigation -->
   <header id="topNav">
     <div class="nav-left">
       <button class="nav-home-btn" id="btnBackToHome" title="Back to landing screen">
@@ -141,7 +139,6 @@
     </div>
   </header>
 
-  <!-- Explainer Modal -->
   <aside class="explainer-modal" id="explainerModal">
     <div class="explainer-header">
       <div class="explainer-title">
@@ -206,9 +203,7 @@
     </div>
   </aside>
 
-  <!-- Workspace -->
   <div id="container">
-    <!-- 2D Ground Track -->
     <div id="cesium2D">
       <div class="hud-panel hud-top-left">
         <div class="hud-track-info">
@@ -245,7 +240,6 @@
       <div class="hud-badge-bottom">PROJECTION: EQUIRECTANGULAR EPSG:4326</div>
     </div>
 
-    <!-- Split Divider -->
     <div class="panel-divider" title="Drag to resize panels">
       <div class="divider-line"></div>
       <div class="divider-handle">
@@ -253,7 +247,6 @@
       </div>
     </div>
 
-    <!-- 3D Globe -->
     <div id="cesium3D">
       <div class="hud-panel hud-top-right">
         <div class="hud-tag">ISS TELEMETRY (LIVE SIM)</div>
@@ -295,7 +288,6 @@
         </div>
       </div>
 
-      <!-- Camera Presets -->
       <div class="hud-camera-dock">
         <button class="dock-btn" id="camEurope">Europe</button>
         <button class="dock-btn" id="camAmericas">Americas</button>
@@ -309,14 +301,12 @@
         <span id="frameBadgeText">EARTH-FIXED (ECEF)</span>
       </div>
 
-      <!-- Character overlay -->
       <div id="edgerunnersOverlay" class="edgerunners-duo hidden">
         <img src="assets/textures/lucy_david.png" alt="Lucy and David on the Moon" id="edgerunnersImg">
       </div>
     </div>
   </div>
 
-  <!-- Lunar HUD -->
   <div id="lunarEasterEggHUD" class="lunar-hud hidden">
     <div class="lunar-rotate-dock">
       <button class="lunar-btn-turn" id="btnRotateMoonLeft" title="Turn Moon counterclockwise (← / A)">
@@ -352,7 +342,6 @@
     <source src="assets/Rosa%20Walton%20%26%20Hallie%20Coggins%20-%20I%20Really%20Want%20To%20Stay%20At%20Your%20House.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- Timeline Dock -->
   <footer id="timeControlDock">
     <div class="dock-control-group">
       <button class="ctrl-btn play-pause-btn" id="btnPlayPause" title="Play / Pause">
@@ -373,7 +362,6 @@
       </div>
     </div>
 
-    <!-- Time Scrubber -->
     <div class="slider-group">
       <input type="range" id="timeScrubber" min="0" max="1000" value="0" step="1">
       <div class="slider-ticks">
@@ -385,7 +373,6 @@
       </div>
     </div>
 
-    <!-- Speed Multiplier -->
     <div class="speed-group">
       <span class="speed-lbl">SPEED:</span>
       <button class="speed-btn active" data-speed="1">1x</button>
@@ -400,10 +387,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/5.0.0/satellite.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
-  <script src="js/viewers.js"></script>
-  <script src="js/orbit.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/easter_egg.js"></script>
-  <script src="js/main.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
